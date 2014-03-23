@@ -115,9 +115,9 @@ public class WiktionaryDefinitionsReader implements Reader {
                                              optional(capture(splitter + "lang=" + partOfBraceExpression)) + braceEnd, "$1");
 
         meaning = meaning.replaceAll(braceStart + "term" + splitter +
-                                             optional(capture(partOfBraceExpression)) + splitter +
+                                             optional(capture(partOfBraceExpression)) + many(splitter) +
                                              optional(capture(partOfBraceExpression)) +
-                                             optional(capture(splitter + "lang=" + partOfBraceExpression)) + braceEnd, "$1 ($2)");
+                                             optional(capture(splitter + "lang=" + partOfBraceExpression)) + braceEnd, "$1 ($2)");;
 
         // last of four, three, and then two things
         meaning = meaning.replaceAll(braceStart +

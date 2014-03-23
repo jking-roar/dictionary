@@ -180,11 +180,18 @@ public class WiktionaryDefinitionsReaderTest {
 
     @Test
     public void offSignal() {
-        //# {{context|software|lang=en}} {{initialism of|[[GNU]] [[compiler|Compiler]] for [[Java]]}}
         File file = fileWithOneLine("English\tword\tNoun\t# {{context|military|lang=en}} The [[staff]] of an [[army]], including all [[officer]]s above the rank of [[colonel]], all [[adjutant]]s, [[inspector]]s, [[quartermaster]]s, [[commissary|commissaries]], [[engineer]]s, [[ordnance]] officers, [[paymaster]]s, [[physician]]s, [[signal] officers, and judge advocates, and their [[noncommissioned]] [[assistant]]s.");
         Reader reader = new WiktionaryDefinitionsReader(file.getPath());
         Definition def = reader.getDefinitions("word").get(0);
         assertEquals("The staff of an army, including all officers above the rank of colonel, all adjutants, inspectors, quartermasters, commissary, engineers, ordnance officers, paymasters, physicians, signal officers, and judge advocates, and their noncommissioned assistants.", def.meaning);
+    }
+
+    @Test
+    public void were() {
+        File file = fileWithOneLine("English\tword\tNoun\t# {{context|archaic|lang=en}} [[man]] (human male), as in {{term|werewolf||man-wolf|lang=en}}.");
+        Reader reader = new WiktionaryDefinitionsReader(file.getPath());
+        Definition def = reader.getDefinitions("word").get(0);
+        assertEquals("man (human male), as in werewolf (man-wolf).", def.meaning);
     }
 
     @Test
