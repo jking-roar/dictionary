@@ -56,12 +56,16 @@ public class WiktionaryDefinitionsReader implements Reader {
 
         meaning = meaning.replaceAll("<[^>]+>", "");
 
-        return new Definition(lineParts[1], lineParts[2], meaning.trim());
+        return new Definition(lineParts[1], lineParts[2], meaning.replaceAll("\\|", " ").trim());
     }
 
     private String handleSquareBrackets(String meaning) {
         meaning = meaning.replaceAll("\\[\\[([^\\|\\]]*)\\|[^\\]]*\\]\\]", "$1");
         meaning = meaning.replaceAll("\\[\\[([^\\]]+)\\]\\]", "$1");
+        meaning = meaning.replaceAll("\\[\\[signal\\]([^\\]])", "signal$1");
+        meaning = meaning.replaceAll(".\\[http://" +
+                                             "[^\\]]+" +
+                                             "\\].", "");
         return meaning;
     }
 
@@ -73,13 +77,20 @@ public class WiktionaryDefinitionsReader implements Reader {
         String splitter = "\\|";
         String space = " ";
         String partOfBraceExpression = many(not(or(sbe, splitter)));
-        String nonBraceEnds = many(not(sbe));
+        String nonBraceEnds = many(not("\\}"));
 
         //punctuation things
         meaning = meaning.replaceAll(braceStart + capture(partOfBraceExpression) + braceEnd, "$1");
 
+        meaning = meaning.replaceAll(braceStart + "Latn-def" + splitter + partOfBraceExpression + splitter +
+                                             capture(partOfBraceExpression) + splitter +
+                                             capture(many(capture(partOfBraceExpression + optional(splitter)))) + braceEnd, "The $1 of the Latin-script letter $2.");
+
         // context of some domain
-        meaning = meaning.replaceAll(braceStart + capture("context|cx") + splitter + nonBraceEnds + braceEnd + space, "");
+        meaning = meaning.replaceAll(braceStart + capture("context|cx") + nonBraceEnds + braceEnd, "");
+        meaning = meaning.replaceAll(braceStart + "label" + nonBraceEnds + braceEnd, "");
+
+        meaning = meaning.replaceAll(braceStart + "\\&lit" + splitter + capture(nonBraceEnds) + braceEnd, "see $1");
 
         meaning = meaning.replaceAll(braceStart + "cite" + nonBraceEnds + braceEnd, "");
 
@@ -93,7 +104,22 @@ public class WiktionaryDefinitionsReader implements Reader {
                                              braceEnd, "$1 $2"
         );
 
-        // last of four, two, and then three things
+        //term
+        meaning = meaning.replaceAll(braceStart + "term" + splitter +
+                                             optional(capture(partOfBraceExpression)) + splitter +
+                                             optional(capture(splitter + "lang=" + partOfBraceExpression)) + braceEnd, "$1");
+
+        meaning = meaning.replaceAll(braceStart + "term" + splitter +
+                                             splitter +
+                                             optional(capture(partOfBraceExpression)) +
+                                             optional(capture(splitter + "lang=" + partOfBraceExpression)) + braceEnd, "$1");
+
+        meaning = meaning.replaceAll(braceStart + "term" + splitter +
+                                             optional(capture(partOfBraceExpression)) + splitter +
+                                             optional(capture(partOfBraceExpression)) +
+                                             optional(capture(splitter + "lang=" + partOfBraceExpression)) + braceEnd, "$1 ($2)");
+
+        // last of four, three, and then two things
         meaning = meaning.replaceAll(braceStart +
                                              partOfBraceExpression +
                                              splitter +
@@ -120,7 +146,13 @@ public class WiktionaryDefinitionsReader implements Reader {
                                              nonBraceEnds +
                                              braceEnd, "");
 
+        meaning = meaning.replaceAll(braceStart + "cite web", "");
+
         return meaning;
+    }
+
+    private String optional(String thing) {
+        return thing + "?";
     }
 
     private String any(String expr) {

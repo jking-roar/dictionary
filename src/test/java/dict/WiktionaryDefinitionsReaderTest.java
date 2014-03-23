@@ -82,11 +82,11 @@ public class WiktionaryDefinitionsReaderTest {
     }
 
     @Test
-    public void dropLatinDef() {
+    public void expandLatinDef() {
         File file = fileWithOneLine("English\tword\tNoun\t# {{context|archaic|lang=en}} {{l|en|long s}} {{Latn-def|en|letter|19|long s|medial s|descending s}}");
         Reader reader = new WiktionaryDefinitionsReader(file.getPath());
         Definition def = reader.getDefinitions("word").get(0);
-        assertEquals("long s", def.meaning);
+        assertEquals("long s The letter of the Latin-script letter 19 long s medial s descending s.", def.meaning);
     }
 
     @Test
@@ -148,19 +148,80 @@ public class WiktionaryDefinitionsReaderTest {
 
     @Test
     public void langLinks() {
-            File file = fileWithOneLine("English\tword\tNoun\t# A cross composed of four {{l/en|triquetra|triquetrae}} which meet at the {{l/en|crux}} by their {{l/en|vertex|vertices}}.");
-            Reader reader = new WiktionaryDefinitionsReader(file.getPath());
-            Definition def = reader.getDefinitions("word").get(0);
-            assertEquals("A cross composed of four triquetrae which meet at the crux by their vertices.", def.meaning);
+        File file = fileWithOneLine("English\tword\tNoun\t# A cross composed of four {{l/en|triquetra|triquetrae}} which meet at the {{l/en|crux}} by their {{l/en|vertex|vertices}}.");
+        Reader reader = new WiktionaryDefinitionsReader(file.getPath());
+        Definition def = reader.getDefinitions("word").get(0);
+        assertEquals("A cross composed of four triquetrae which meet at the crux by their vertices.", def.meaning);
     }
 
     @Test
     public void gcj() {
-        //# {{context|software|lang=en}} {{initialism of|[[GNU]] [[compiler|Compiler]] for [[Java]]}}
         File file = fileWithOneLine("English\tword\tNoun\t# {{context|software|lang=en}} {{initialism of|[[GNU]] [[compiler|Compiler]] for [[Java]]}}");
         Reader reader = new WiktionaryDefinitionsReader(file.getPath());
         Definition def = reader.getDefinitions("word").get(0);
         assertEquals("initialism of GNU compiler for Java", def.meaning);
+    }
+
+    @Test
+    public void zee() {
+        File file = fileWithOneLine("English\tword\tNoun\t# {{context|US|lang=en}} {{Latn-def|en|name|Z|z}}");
+        Reader reader = new WiktionaryDefinitionsReader(file.getPath());
+        Definition def = reader.getDefinitions("word").get(0);
+        assertEquals("The name of the Latin-script letter Z z.", def.meaning);
+    }
+
+    @Test
+    public void citeWeb() {
+        File file = fileWithOneLine("English\tword\tNoun\t# Wild animals, excluding fish.<ref name=\"wa\">{{cite web");
+        Reader reader = new WiktionaryDefinitionsReader(file.getPath());
+        Definition def = reader.getDefinitions("word").get(0);
+        assertEquals("Wild animals, excluding fish.", def.meaning);
+    }
+
+    @Test
+    public void offSignal() {
+        //# {{context|software|lang=en}} {{initialism of|[[GNU]] [[compiler|Compiler]] for [[Java]]}}
+        File file = fileWithOneLine("English\tword\tNoun\t# {{context|military|lang=en}} The [[staff]] of an [[army]], including all [[officer]]s above the rank of [[colonel]], all [[adjutant]]s, [[inspector]]s, [[quartermaster]]s, [[commissary|commissaries]], [[engineer]]s, [[ordnance]] officers, [[paymaster]]s, [[physician]]s, [[signal] officers, and judge advocates, and their [[noncommissioned]] [[assistant]]s.");
+        Reader reader = new WiktionaryDefinitionsReader(file.getPath());
+        Definition def = reader.getDefinitions("word").get(0);
+        assertEquals("The staff of an army, including all officers above the rank of colonel, all adjutants, inspectors, quartermasters, commissary, engineers, ordnance officers, paymasters, physicians, signal officers, and judge advocates, and their noncommissioned assistants.", def.meaning);
+    }
+
+    @Test
+    public void bracketSite() {
+        //# {{context|software|lang=en}} {{initialism of|[[GNU]] [[compiler|Compiler]] for [[Java]]}}
+        File file = fileWithOneLine("English\tword\tNoun\t# {{archaic spelling of|equilibrium}}<ref name=\"OED-alt\">“[http://dictionary.oed.com/cgi/entry/50077253?sp=1 equilibrium]” in the '''Oxford English Dictionary''' (second edition)," +
+                                            " giving {{term||æquilibrium|lang=en}} as a 17th–19th-century spelling.</ref>");
+        Reader reader = new WiktionaryDefinitionsReader(file.getPath());
+        Definition def = reader.getDefinitions("word").get(0);
+        assertEquals("archaic spelling of equilibrium in the '''Oxford English Dictionary''' (second edition), giving æquilibrium as a 17th–19th-century spelling.", def.meaning);
+    }
+
+    @Test
+    public void andry() {
+        //# {{context|software|lang=en}} {{initialism of|[[GNU]] [[compiler|Compiler]] for [[Java]]}}
+        File file = fileWithOneLine("English\tword\tNoun\t# male [[reproductive]] [[organ]](s); {{context|especially in|_|botany|lang=en}}: [[stamen]](s)");
+        Reader reader = new WiktionaryDefinitionsReader(file.getPath());
+        Definition def = reader.getDefinitions("word").get(0);
+        assertEquals("male reproductive organ(s); : stamen(s)", def.meaning);
+    }
+
+    @Test
+    public void dropLabels() {
+        //# {{context|software|lang=en}} {{initialism of|[[GNU]] [[compiler|Compiler]] for [[Java]]}}
+        File file = fileWithOneLine("English\tword\tNoun\t# {{label|en|uncountable|slang|professional wrestling}} The [[staging]] of events to appear as real.");
+        Reader reader = new WiktionaryDefinitionsReader(file.getPath());
+        Definition def = reader.getDefinitions("word").get(0);
+        assertEquals("The staging of events to appear as real.", def.meaning);
+    }
+
+    @Test
+    public void lit() {
+        //# {{context|software|lang=en}} {{initialism of|[[GNU]] [[compiler|Compiler]] for [[Java]]}}
+        File file = fileWithOneLine("English\tword\tNoun\t# {{&lit|writ|large|larger|largest}}");
+        Reader reader = new WiktionaryDefinitionsReader(file.getPath());
+        Definition def = reader.getDefinitions("word").get(0);
+        assertEquals("see writ large larger largest", def.meaning);
     }
 
     private File fileWithOneLine(String line) {
