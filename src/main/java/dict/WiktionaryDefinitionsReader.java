@@ -32,7 +32,14 @@ public class WiktionaryDefinitionsReader implements Reader {
         try {
             BufferedReader br = new BufferedReader(new FileReader(filename));
             for (String line = br.readLine(); line != null; line = br.readLine()) {
-                Definition d = processOneLine(line);
+
+                Definition d = null;
+                try {
+                    d = processOneLine(line);
+                } catch (NotDefinition notDefinition) {
+                    continue;
+                }
+
                 definitions.get(d.word).add(d);
                 allDefinitions.add(d);
             }
@@ -43,7 +50,7 @@ public class WiktionaryDefinitionsReader implements Reader {
         }
     }
 
-    private Definition processOneLine(String definitionLine) {
+    private Definition processOneLine(String definitionLine) throws NotDefinition {
         String[] lineParts = definitionLine.split("\t");
         String meaning = lineParts[3];
         if (meaning.startsWith("# ")) {
@@ -56,7 +63,12 @@ public class WiktionaryDefinitionsReader implements Reader {
 
         meaning = meaning.replaceAll("<[^>]+>", "");
 
-        return new Definition(lineParts[1], lineParts[2], meaning.replaceAll("\\|", " ").trim());
+        String word = lineParts[1];
+        String pos = lineParts[2];
+        if(pos.startsWith("Etymol")) {
+            throw new NotDefinition("an etymology");
+        }
+        return new Definition(word, pos, meaning.replaceAll("\\|", " ").trim());
     }
 
     private String handleSquareBrackets(String meaning) {
@@ -69,7 +81,9 @@ public class WiktionaryDefinitionsReader implements Reader {
         return meaning;
     }
 
-    private String handleCurlyBraces(String meaning) {
+    private String handleCurlyBraces(String meaning) throws NotDefinition {
+
+
         String sbs = "\\{";
         String braceStart = sbs + sbs;
         String sbe = "\\}";
@@ -79,6 +93,13 @@ public class WiktionaryDefinitionsReader implements Reader {
         String partOfBraceExpression = many(not(or(sbe, splitter)));
         String nonBraceEnds = many(not("\\}"));
 
+        if(meaning.matches(".*" + braceStart+"rfdef" + ".*")) {
+            throw new NotDefinition("a request for a definition");
+        }
+        if(meaning.matches(".*" + braceStart+"&lit" + ".*")) {
+            throw new NotDefinition("literally translating an idiom");
+        }
+
         //punctuation things
         meaning = meaning.replaceAll(braceStart + capture(partOfBraceExpression) + braceEnd, "$1");
 
@@ -87,7 +108,7 @@ public class WiktionaryDefinitionsReader implements Reader {
                                              capture(many(capture(partOfBraceExpression + optional(splitter)))) + braceEnd, "The $1 of the Latin-script letter $2.");
 
         // context of some domain
-        meaning = meaning.replaceAll(braceStart + capture("context|cx") + nonBraceEnds + braceEnd, "");
+        meaning = meaning.replaceAll(braceStart + capture("context|cx") + nonBraceEnds + sbe + any(capture(" and " + sbs + capture("context|cx") + nonBraceEnds + sbe)) + sbe, "");
         meaning = meaning.replaceAll(braceStart + "label" + nonBraceEnds + braceEnd, "");
 
         meaning = meaning.replaceAll(braceStart + "\\&lit" + splitter + capture(nonBraceEnds) + braceEnd, "see $1");
@@ -146,7 +167,8 @@ public class WiktionaryDefinitionsReader implements Reader {
                                              nonBraceEnds +
                                              braceEnd, "");
 
-        meaning = meaning.replaceAll(braceStart + "cite web", "");
+        meaning = meaning.replaceAll(braceStart + "cite web$", "");
+        meaning = meaning.replaceAll(braceStart + "reference-journal$", "");
 
         return meaning;
     }

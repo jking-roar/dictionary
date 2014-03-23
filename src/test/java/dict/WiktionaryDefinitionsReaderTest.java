@@ -33,6 +33,13 @@ public class WiktionaryDefinitionsReaderTest {
     }
 
     @Test
+    public void dropEtymologies() {
+        File file = fileWithOneLine("English\twarm\tEtymology 1\t# {{etyl|ine-pro|en}} {{term/t|ine-pro|*gʷʰer-}} (warm, hot), related to Ancient Greek {{term|θερμός|tr=thermos|lang=grc|sc=polytonic}}, Latin {{term|formus|lang=la}}, Sanskrit {{term|घर्म|tr=gharma|lang=sa|sc=Deva}}.");
+        Reader reader = new WiktionaryDefinitionsReader(file.getPath());
+        assertEquals(0, reader.getDefinitions("warm").size());
+    }
+
+    @Test
     public void retrievesCorrectStringFromBrackets() {
         File file = fileWithOneLine("English\tword\tNoun\t# [[realWord|visible word]].");
         Reader reader = new WiktionaryDefinitionsReader(file.getPath());
@@ -196,7 +203,6 @@ public class WiktionaryDefinitionsReaderTest {
 
     @Test
     public void bracketSite() {
-        //# {{context|software|lang=en}} {{initialism of|[[GNU]] [[compiler|Compiler]] for [[Java]]}}
         File file = fileWithOneLine("English\tword\tNoun\t# {{archaic spelling of|equilibrium}}<ref name=\"OED-alt\">“[http://dictionary.oed.com/cgi/entry/50077253?sp=1 equilibrium]” in the '''Oxford English Dictionary''' (second edition)," +
                                             " giving {{term||æquilibrium|lang=en}} as a 17th–19th-century spelling.</ref>");
         Reader reader = new WiktionaryDefinitionsReader(file.getPath());
@@ -206,7 +212,6 @@ public class WiktionaryDefinitionsReaderTest {
 
     @Test
     public void andry() {
-        //# {{context|software|lang=en}} {{initialism of|[[GNU]] [[compiler|Compiler]] for [[Java]]}}
         File file = fileWithOneLine("English\tword\tNoun\t# male [[reproductive]] [[organ]](s); {{context|especially in|_|botany|lang=en}}: [[stamen]](s)");
         Reader reader = new WiktionaryDefinitionsReader(file.getPath());
         Definition def = reader.getDefinitions("word").get(0);
@@ -215,7 +220,6 @@ public class WiktionaryDefinitionsReaderTest {
 
     @Test
     public void dropLabels() {
-        //# {{context|software|lang=en}} {{initialism of|[[GNU]] [[compiler|Compiler]] for [[Java]]}}
         File file = fileWithOneLine("English\tword\tNoun\t# {{label|en|uncountable|slang|professional wrestling}} The [[staging]] of events to appear as real.");
         Reader reader = new WiktionaryDefinitionsReader(file.getPath());
         Definition def = reader.getDefinitions("word").get(0);
@@ -223,12 +227,33 @@ public class WiktionaryDefinitionsReaderTest {
     }
 
     @Test
-    public void lit() {
-        //# {{context|software|lang=en}} {{initialism of|[[GNU]] [[compiler|Compiler]] for [[Java]]}}
+    public void dropLiteralTranslationsOfIdioms() {
         File file = fileWithOneLine("English\tword\tNoun\t# {{&lit|writ|large|larger|largest}}");
         Reader reader = new WiktionaryDefinitionsReader(file.getPath());
+        assertEquals(0, reader.getDefinitions("word").size());
+    }
+
+    @Test
+    public void multipleContexts() {
+        File file = fileWithOneLine("English\tword\tNoun\t# {{context|Scotland|lang=en} and {context|South Africa|lang=en}} In a [[timely]] manner.");
+        Reader reader = new WiktionaryDefinitionsReader(file.getPath());
         Definition def = reader.getDefinitions("word").get(0);
-        assertEquals("see writ large larger largest", def.meaning);
+        assertEquals("In a timely manner.", def.meaning);
+    }
+
+    @Test
+    public void referenceJournal() {
+        File file = fileWithOneLine("English\tword\tNoun\t# {{context|Internet|lang=en}} A [[proxy]] that controls access to a resource that is expensive to create.<ref>{{reference-journal");
+        Reader reader = new WiktionaryDefinitionsReader(file.getPath());
+        Definition def = reader.getDefinitions("word").get(0);
+        assertEquals("A proxy that controls access to a resource that is expensive to create.", def.meaning);
+    }
+
+    @Test
+    public void needsDefinition() {
+        File file = fileWithOneLine("English\tword\tNoun\t# {{rfdef|mathematics|physics|medicine|at least possibly|lang=en}}");
+        Reader reader = new WiktionaryDefinitionsReader(file.getPath());
+        assertEquals(0, reader.getDefinitions("word").size());
     }
 
     private File fileWithOneLine(String line) {
