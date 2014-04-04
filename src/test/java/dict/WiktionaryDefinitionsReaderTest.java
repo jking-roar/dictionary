@@ -282,10 +282,10 @@ public class WiktionaryDefinitionsReaderTest {
 
     @Test
     public void shakuhachi() {
-        File file = fileWithOneLine("English\tword\tNoun\t# in the practice of {{term|吹禅||blowing meditation|tr=[[すいぜん]], [[suizen]]|lang=ja|sc=Jpan}}.");
+        File file = fileWithOneLine("English\tword\tNoun\t# [...] Monks of the {{term|普化禅|||tr=[[ふけぜん]], [[fuke zen]]|sc=Jpan|lang=ja}} sect in the practice of {{term|吹禅||blowing meditation|tr=[[すいぜん]], [[suizen]]|lang=ja|sc=Jpan}}.");
         Reader reader = new WiktionaryDefinitionsReader(file.getPath());
         Definition def = reader.getDefinitions("word").get(0);
-        assertEquals("in the practice of すいぜん, suizen.", def.meaning);
+        assertEquals("[...] Monks of the ふけぜん, fuke zen sect in the practice of すいぜん, suizen.", def.meaning);
     }
 
     private File fileWithOneLine(String line) {

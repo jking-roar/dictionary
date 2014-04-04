@@ -150,9 +150,9 @@ public class WiktionaryDefinitionsReader implements Reader {
 
         meaning = meaning.replaceAll(braceStart + "term" + splitter +
                                              partOfBraceExpression + splitter +
-                                             optional(capture(partOfBraceExpression)) + splitter + partOfBraceExpression + splitter +
+                                             optional(capture(partOfBraceExpression)) + splitter + optional(capture(partOfBraceExpression)) + splitter +
                                              "tr="+capture(partOfBraceExpression) +
-                                             any(capture(splitter + partOfBraceExpression)) + braceEnd, "$2");
+                                             any(capture(splitter + partOfBraceExpression)) + braceEnd, "$3");
 
         meaning = meaning.replaceAll(braceStart + "SI-unit" + nonBraceEnds + braceEnd, "An SI unit");
 
