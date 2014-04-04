@@ -202,12 +202,11 @@ public class WiktionaryDefinitionsReaderTest {
     }
 
     @Test
-    public void bracketSite() {
-        File file = fileWithOneLine("English\tword\tNoun\t# {{archaic spelling of|equilibrium}}<ref name=\"OED-alt\">“[http://dictionary.oed.com/cgi/entry/50077253?sp=1 equilibrium]” in the '''Oxford English Dictionary''' (second edition)," +
-                                            " giving {{term||æquilibrium|lang=en}} as a 17th–19th-century spelling.</ref>");
+    public void refWithPreperties() {
+        File file = fileWithOneLine("English\tword\tNoun\t# {{archaic spelling of|equilibrium}}<ref name=\"OED-alt\">“[http://dictionary.oed.com/cgi/entry/50077253?sp=1 equilibrium]” in the '''Oxford English Dictionary''' (second edition), giving {{term||æquilibrium|lang=en}} as a 17th–19th-century spelling.</ref>");
         Reader reader = new WiktionaryDefinitionsReader(file.getPath());
         Definition def = reader.getDefinitions("word").get(0);
-        assertEquals("archaic spelling of equilibrium in the '''Oxford English Dictionary''' (second edition), giving æquilibrium as a 17th–19th-century spelling.", def.meaning);
+        assertEquals("archaic spelling of equilibrium", def.meaning);
     }
 
     @Test
@@ -239,14 +238,6 @@ public class WiktionaryDefinitionsReaderTest {
         Reader reader = new WiktionaryDefinitionsReader(file.getPath());
         Definition def = reader.getDefinitions("word").get(0);
         assertEquals("In a timely manner.", def.meaning);
-    }
-
-    @Test
-    public void referenceJournal() {
-        File file = fileWithOneLine("English\tword\tNoun\t# {{context|Internet|lang=en}} A [[proxy]] that controls access to a resource that is expensive to create.<ref>{{reference-journal");
-        Reader reader = new WiktionaryDefinitionsReader(file.getPath());
-        Definition def = reader.getDefinitions("word").get(0);
-        assertEquals("A proxy that controls access to a resource that is expensive to create.", def.meaning);
     }
 
     @Test
@@ -286,6 +277,46 @@ public class WiktionaryDefinitionsReaderTest {
         Reader reader = new WiktionaryDefinitionsReader(file.getPath());
         Definition def = reader.getDefinitions("word").get(0);
         assertEquals("[...] Monks of the ふけぜん, fuke zen sect in the practice of すいぜん, suizen.", def.meaning);
+    }
+
+    @Test
+    public void translations() {
+        File file = fileWithOneLine("English\tword\tNoun\t# [...] descended from the Latin {{term|lang=la|ipse||self}} instead of the Latin {{term|lang=la|ille||that}}.");
+        Reader reader = new WiktionaryDefinitionsReader(file.getPath());
+        Definition def = reader.getDefinitions("word").get(0);
+        assertEquals("[...] descended from the Latin ipse (self) instead of the Latin ille (that).", def.meaning);
+    }
+
+    @Test
+    public void translationPoblano() {
+        File file = fileWithOneLine("English\tword\tNoun\tthe chilis are called [[ancho]]s or {{term|chile ancho|chiles anchos|wide chilis|lang=es}}.");
+        Reader reader = new WiktionaryDefinitionsReader(file.getPath());
+        Definition def = reader.getDefinitions("word").get(0);
+        assertEquals("the chilis are called anchos or chiles anchos (wide chilis).", def.meaning);
+    }
+
+    @Test
+    public void taxlink() {
+        File file = fileWithOneLine("English\tword\tNoun\t# A southern African subspecies of [[zebra]], {{taxlink|Equus quagga quagga|subspecies||noshow=1}}, which went");
+        Reader reader = new WiktionaryDefinitionsReader(file.getPath());
+        Definition def = reader.getDefinitions("word").get(0);
+        assertEquals("A southern African subspecies of zebra, Equus quagga quagga, which went", def.meaning);
+    }
+
+    @Test
+    public void words() {
+        File file = fileWithOneLine("English\tword\tNoun\t# {{context|legal|lang=en}} {{abbreviation of|{{w|United States Court of Appeals for the Tenth Circuit}}}}");
+        Reader reader = new WiktionaryDefinitionsReader(file.getPath());
+        Definition def = reader.getDefinitions("word").get(0);
+        assertEquals("abbreviation of United States Court of Appeals for the Tenth Circuit", def.meaning);
+    }
+
+    @Test
+    public void soplink() {
+        File file = fileWithOneLine("English\tword\tNoun\t# {{eye dialect of|{{soplink|do|you|know|what|I|mean}}}}");
+        Reader reader = new WiktionaryDefinitionsReader(file.getPath());
+        Definition def = reader.getDefinitions("word").get(0);
+        assertEquals("eye dialect of do you know what I mean", def.meaning);
     }
 
     private File fileWithOneLine(String line) {

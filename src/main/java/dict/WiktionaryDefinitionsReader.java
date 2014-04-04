@@ -74,7 +74,7 @@ public class WiktionaryDefinitionsReader implements Reader {
     }
 
     private String removeRefTags(String meaning) {
-        meaning = meaning.replaceAll("<ref>(?:(?!</ref>).).*</ref> ?", "");
+        meaning = meaning.replaceAll("<ref[^>]*>(?:(?!</ref>).).*</ref> ?", "");
         return meaning;
     }
 
@@ -110,6 +110,8 @@ public class WiktionaryDefinitionsReader implements Reader {
         //punctuation things
         meaning = meaning.replaceAll(braceStart + capture(partOfBraceExpression) + braceEnd, "$1");
 
+        meaning = meaning.replaceAll(braceStart + "w" + splitter + capture(partOfBraceExpression) + braceEnd, "$1");
+
         meaning = meaning.replaceAll(braceStart + "Latn-def" + splitter + partOfBraceExpression + splitter +
                                              capture(partOfBraceExpression) + splitter +
                                              capture(many(capture(partOfBraceExpression + optional(splitter)))) + braceEnd, "The $1 of the Latin-script letter $2.");
@@ -133,6 +135,8 @@ public class WiktionaryDefinitionsReader implements Reader {
                                              braceEnd, "$1 $2"
         );
 
+        meaning = meaning.replaceAll(braceStart + "taxlink" + splitter + capture(partOfBraceExpression) + any(capture(splitter + optional(capture(partOfBraceExpression)))) + braceEnd, "$1");
+
         //term
         meaning = meaning.replaceAll(braceStart + "term" + splitter +
                                              optional(capture(partOfBraceExpression)) + splitter +
@@ -150,9 +154,35 @@ public class WiktionaryDefinitionsReader implements Reader {
 
         meaning = meaning.replaceAll(braceStart + "term" + splitter +
                                              partOfBraceExpression + splitter +
-                                             optional(capture(partOfBraceExpression)) + splitter + optional(capture(partOfBraceExpression)) + splitter +
-                                             "tr="+capture(partOfBraceExpression) +
+                                             optional(capture(partOfBraceExpression)) + splitter +
+                                             optional(capture(partOfBraceExpression)) + splitter +
+                                             "tr=" + capture(partOfBraceExpression) +
                                              any(capture(splitter + partOfBraceExpression)) + braceEnd, "$3");
+
+        //{{term|chile ancho|chiles anchos|wide chilis|lang=es}}
+        meaning = meaning.replaceAll(braceStart +
+                                             "term" +
+                                             splitter +
+                                             partOfBraceExpression +
+                                             splitter +
+                                             capture(partOfBraceExpression) +
+                                             splitter +
+                                             capture(partOfBraceExpression) +
+                                             splitter +
+                                             "lang="+partOfBraceExpression +
+                                             braceEnd, "$1 ($2)");
+
+        meaning = meaning.replaceAll(braceStart +
+                                             "term" +
+                                             splitter +
+                                             partOfBraceExpression +
+                                             splitter +
+                                             capture(partOfBraceExpression) +
+                                             splitter +
+                                             optional(capture(partOfBraceExpression)) +
+                                             splitter +
+                                             capture(partOfBraceExpression) +
+                                             braceEnd, "$1 ($3)");
 
         meaning = meaning.replaceAll(braceStart + "SI-unit" + nonBraceEnds + braceEnd, "An SI unit");
 
@@ -185,9 +215,12 @@ public class WiktionaryDefinitionsReader implements Reader {
                                              nonBraceEnds +
                                              braceEnd, "");
 
-        meaning = meaning.replaceAll(braceStart + "cite web$", "");
-        meaning = meaning.replaceAll(braceStart + "reference-journal$", "");
-
+        //errors of omission
+        if(meaning.matches(".*" + braceStart + nonBraceEnds + "$")) {
+//            System.err.println("BAD! : " + meaning);
+        }
+        meaning = meaning.replaceAll(braceStart + nonBraceEnds + "$",
+                                     "");
         return meaning;
     }
 
