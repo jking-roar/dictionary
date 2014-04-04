@@ -74,7 +74,7 @@ public class WiktionaryDefinitionsReader implements Reader {
     }
 
     private String removeRefTags(String meaning) {
-        meaning = meaning.replaceAll("<ref>(?:(?!</ref>).).*</ref>", "");
+        meaning = meaning.replaceAll("<ref>(?:(?!</ref>).).*</ref> ?", "");
         return meaning;
     }
 
