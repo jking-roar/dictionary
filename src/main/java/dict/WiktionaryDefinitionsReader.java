@@ -61,14 +61,21 @@ public class WiktionaryDefinitionsReader implements Reader {
 
         meaning = handleCurlyBraces(meaning);
 
+        meaning = removeRefTags(meaning);
+
         meaning = meaning.replaceAll("<[^>]+>", "");
 
         String word = lineParts[1];
         String pos = lineParts[2];
-        if(pos.startsWith("Etymol")) {
+        if (pos.startsWith("Etymol")) {
             throw new NotDefinition("an etymology");
         }
         return new Definition(word, pos, meaning.replaceAll("\\|", " ").trim());
+    }
+
+    private String removeRefTags(String meaning) {
+        meaning = meaning.replaceAll("<ref>(?:(?!</ref>).).*</ref>", "");
+        return meaning;
     }
 
     private String handleSquareBrackets(String meaning) {
@@ -93,10 +100,10 @@ public class WiktionaryDefinitionsReader implements Reader {
         String partOfBraceExpression = many(not(or(sbe, splitter)));
         String nonBraceEnds = many(not("\\}"));
 
-        if(meaning.matches(".*" + braceStart+"rfdef" + ".*")) {
+        if (meaning.matches(".*" + braceStart + "rfdef" + ".*")) {
             throw new NotDefinition("a request for a definition");
         }
-        if(meaning.matches(".*" + braceStart+"&lit" + ".*")) {
+        if (meaning.matches(".*" + braceStart + "&lit" + ".*")) {
             throw new NotDefinition("literally translating an idiom");
         }
 
@@ -116,7 +123,8 @@ public class WiktionaryDefinitionsReader implements Reader {
         meaning = meaning.replaceAll(braceStart + "cite" + nonBraceEnds + braceEnd, "");
 
         // some form of something else
-        meaning = meaning.replaceAll(braceStart + "form of" + splitter + "(" + partOfBraceExpression + ")" + splitter + "(" + partOfBraceExpression + ")" + splitter + partOfBraceExpression + braceEnd, "$1 of $2");
+        meaning = meaning
+                .replaceAll(braceStart + "form of" + splitter + "(" + partOfBraceExpression + ")" + splitter + "(" + partOfBraceExpression + ")" + splitter + partOfBraceExpression + braceEnd, "$1 of $2");
         meaning = meaning.replaceAll(braceStart +
                                              capture(partOfBraceExpression + "of") +
                                              splitter +
@@ -138,8 +146,18 @@ public class WiktionaryDefinitionsReader implements Reader {
         meaning = meaning.replaceAll(braceStart + "term" + splitter +
                                              optional(capture(partOfBraceExpression)) + many(splitter) +
                                              optional(capture(partOfBraceExpression)) +
-                                             optional(capture(splitter + "lang=" + partOfBraceExpression)) + braceEnd, "$1 ($2)");;
+                                             optional(capture(splitter + "lang=" + partOfBraceExpression)) + braceEnd, "$1 ($2)");
 
+        meaning = meaning.replaceAll(braceStart + "term" + splitter +
+                                             partOfBraceExpression + splitter +
+                                             optional(capture(partOfBraceExpression)) + splitter + partOfBraceExpression + splitter +
+                                             "tr="+capture(partOfBraceExpression) +
+                                             any(capture(splitter + partOfBraceExpression)) + braceEnd, "$2");
+
+        meaning = meaning.replaceAll(braceStart + "SI-unit" + nonBraceEnds + braceEnd, "An SI unit");
+
+        meaning = meaning.replaceAll(braceStart + capture("dated form of") + splitter + optional(capture(partOfBraceExpression)) + splitter + capture(partOfBraceExpression) + braceEnd,
+                                     "$1 $3");
         // last of four, three, and then two things
         meaning = meaning.replaceAll(braceStart +
                                              partOfBraceExpression +

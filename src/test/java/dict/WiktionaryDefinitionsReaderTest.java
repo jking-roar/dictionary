@@ -256,6 +256,38 @@ public class WiktionaryDefinitionsReaderTest {
         assertEquals(0, reader.getDefinitions("word").size());
     }
 
+    @Test
+    public void terameter() {
+        File file = fileWithOneLine("English\tword\tNoun\t# {{SI-unit-2|tera|metre|length|meter}}");
+        Reader reader = new WiktionaryDefinitionsReader(file.getPath());
+        Definition def = reader.getDefinitions("word").get(0);
+        assertEquals("An SI unit", def.meaning);
+    }
+
+    @Test
+    public void phantasia() {
+        File file = fileWithOneLine("English\tword\tNoun\t# {{dated form of||fantasia}}");
+        Reader reader = new WiktionaryDefinitionsReader(file.getPath());
+        Definition def = reader.getDefinitions("word").get(0);
+        assertEquals("dated form of fantasia", def.meaning);
+    }
+
+    @Test
+    public void referencesRemoved() {
+        File file = fileWithOneLine("English\tword\tNoun\t# some text <ref>any reference text</ref> other text");
+        Reader reader = new WiktionaryDefinitionsReader(file.getPath());
+        Definition def = reader.getDefinitions("word").get(0);
+        assertEquals("some text other text", def.meaning);
+    }
+
+    @Test
+    public void shakuhachi() {
+        File file = fileWithOneLine("English\tword\tNoun\t# in the practice of {{term|吹禅||blowing meditation|tr=[[すいぜん]], [[suizen]]|lang=ja|sc=Jpan}}.");
+        Reader reader = new WiktionaryDefinitionsReader(file.getPath());
+        Definition def = reader.getDefinitions("word").get(0);
+        assertEquals("in the practice of すいぜん, suizen.", def.meaning);
+    }
+
     private File fileWithOneLine(String line) {
         try {
             File dictFile = File.createTempFile("wiktionary", "tsv");
