@@ -130,6 +130,14 @@ public class WiktionaryDefinitionsReaderTest {
     }
 
     @Test
+    public void nonglossWithReference() {
+        File file = fileWithOneLine("English\tword\tNoun\t# {{non-gloss definition|Airport code for [[Abadan]], [[Iran]].<ref>{{reference-book | last =| first = | authorlink =  | coauthors =  | editor =Morris, William    | others =  | title = The American Heritage Dictionary of the English Language | origdate =  | origyear = 1969| origmonth =  | url =  | format =  | accessdate =  | accessyear =  | accessmonth =  | edition =  | date =  | year =1971| month =  | publisher =American Heritage Publishing Co., Inc. | location = New York, NY | language =  | id =  | doi = | isbn =0-395-09066-0 | lccn = | ol = | pages =1| chapter =  | chapterurl =  | quote =}}</ref>}}");
+        Reader reader = new WiktionaryDefinitionsReader(file.getPath());
+        Definition def = reader.getDefinitions("word").get(0);
+        assertEquals("Airport code for Abadan, Iran.", def.meaning);
+    }
+
+    @Test
     public void alternativeForm() {
         File file = fileWithOneLine("English\tword\tNoun\t{{alternative form of|apheresis}} {{qualifier|loss of a letter or sound from the beginning of a word}}");
         Reader reader = new WiktionaryDefinitionsReader(file.getPath());
@@ -319,10 +327,52 @@ public class WiktionaryDefinitionsReaderTest {
         assertEquals("eye dialect of do you know what I mean", def.meaning);
     }
 
+    @Test
+    public void kamora() {
+        File file = fileWithOneLine("English\tword\tNoun\t# The diacritic {{l|mul|sc=Cyrs|҄|&nbsp;҄}}, used [...]");
+        Reader reader = new WiktionaryDefinitionsReader(file.getPath());
+        Definition def = reader.getDefinitions("word").get(0);
+        assertEquals("The diacritic &nbsp;҄, used [...]", def.meaning);
+    }
+
+    @Test
+    public void jukujikun() {
+        File file = fileWithOneLine("English\tword\tNoun\t# For example, {{term|lang=ja|大||big|pos=usually read ''ō'' in {{l|ja|sc=Latn|訓読み|''kun'yomi''}} compounds}} and");
+        Reader reader = new WiktionaryDefinitionsReader(file.getPath());
+        Definition def = reader.getDefinitions("word").get(0);
+        assertEquals("For example, 大 (\"big\", usually read ''ō'' in ''kun'yomi'' compounds) and", def.meaning);
+    }
+
+    @Test
+    public void givenName() {
+        File file = fileWithOneLine("English\tword\tNoun\t# {{given name|female|from=Hebrew|}}; formerly rare");
+        Reader reader = new WiktionaryDefinitionsReader(file.getPath());
+        Definition def = reader.getDefinitions("word").get(0);
+        assertEquals("A given female name; formerly rare", def.meaning);
+    }
+
+    @Test
+    public void surname() {
+        File file = fileWithOneLine("English\tword\tNoun\t# {{surname||from=Italian}}");
+        Reader reader = new WiktionaryDefinitionsReader(file.getPath());
+        Definition def = reader.getDefinitions("word").get(0);
+        assertEquals("A surname", def.meaning);
+    }
+
+    @Test
+    public void twoPartW() {
+        File file = fileWithOneLine("English\tword\tNoun\t# {{context|US|lang=en}} {{initialism of|{{w|AFL-CIO|American Federation of Labor-Congress of Industrial Organizations}}}}");
+        Reader reader = new WiktionaryDefinitionsReader(file.getPath());
+        Definition def = reader.getDefinitions("word").get(0);
+        assertEquals("initialism of American Federation of Labor-Congress of Industrial Organizations", def.meaning);
+    }
+
+
+
     private File fileWithOneLine(String line) {
         try {
             File dictFile = File.createTempFile("wiktionary", "tsv");
-            PrintStream out = new PrintStream(new FileOutputStream(dictFile));
+            PrintStream out = new PrintStream(new FileOutputStream(dictFile), true, "UTF-8");
             out.println(line);
             out.flush();
             out.close();
