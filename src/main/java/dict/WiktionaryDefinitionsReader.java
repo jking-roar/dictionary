@@ -107,11 +107,13 @@ public class WiktionaryDefinitionsReader implements Reader {
             throw new NotDefinition("literally translating an idiom");
         }
 
-        //punctuation things
         meaning = meaning.replaceAll(BRACE_START + capture(PART_OF_BRACE_EXPRESSION) + BRACE_END, "$1");
+
+        meaning = meaning.replaceAll(optional("\\ ") + BRACE_START +"jump" + any(capture(SPLITTER + optional(capture(PART_OF_BRACE_EXPRESSION)))) + BRACE_END, "");
 
         meaning = meaning.replaceAll(BRACE_START + "w" + SPLITTER + capture(PART_OF_BRACE_EXPRESSION) + BRACE_END, "$1");
         meaning = meaning.replaceAll(BRACE_START + "w" + SPLITTER + optional(capture(PART_OF_BRACE_EXPRESSION)) + SPLITTER + capture(PART_OF_BRACE_EXPRESSION) + BRACE_END, "$2");
+        meaning = meaning.replaceAll(BRACE_START + "pedlink" + SPLITTER + capture(PART_OF_BRACE_EXPRESSION) + BRACE_END, "$1");
 
         meaning = meaning.replaceAll(BRACE_START + "Latn-def" + SPLITTER + PART_OF_BRACE_EXPRESSION + SPLITTER +
                                              capture(PART_OF_BRACE_EXPRESSION) + SPLITTER +
@@ -168,6 +170,12 @@ public class WiktionaryDefinitionsReader implements Reader {
                                              optional(capture(PART_OF_BRACE_EXPRESSION)) + SPLITTER +
                                              "tr=" + capture(PART_OF_BRACE_EXPRESSION) +
                                              any(capture(SPLITTER + PART_OF_BRACE_EXPRESSION)) + BRACE_END, "$3");
+
+        meaning = meaning.replaceAll(BRACE_START + "term" + SPLITTER +
+                                             capture(PART_OF_BRACE_EXPRESSION) + SPLITTER +
+                                             "tr=" + capture(PART_OF_BRACE_EXPRESSION) + SPLITTER +
+                                             PART_OF_BRACE_EXPRESSION + SPLITTER +
+                                             SPLITTER + capture(PART_OF_BRACE_EXPRESSION) + BRACE_END, "$1 ($2, $3)");
 
         //{{term|chile ancho|chiles anchos|wide chilis|lang=es}}
         meaning = meaning.replaceAll(BRACE_START +
@@ -245,6 +253,8 @@ public class WiktionaryDefinitionsReader implements Reader {
                                              any(capture(SPLITTER + PART_OF_BRACE_EXPRESSION)) + BRACE_END, "$1 (\"$3\", $4)");
 
         meaning = meaning.replaceAll(BRACE_START + "surname" + any(capture(SPLITTER + optional(capture(PART_OF_BRACE_EXPRESSION)))) + BRACE_END, "A surname");
+
+        meaning = meaning.replaceAll("#expr:" + BRACE_START + NON_BRACE_ENDS + BRACE_END, "XXXXXXX");
 
         //errors of omission
         if (meaning.matches(".*" + BRACE_START + NON_BRACE_ENDS + "$")) {

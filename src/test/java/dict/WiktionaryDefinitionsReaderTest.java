@@ -367,7 +367,37 @@ public class WiktionaryDefinitionsReaderTest {
         assertEquals("initialism of American Federation of Labor-Congress of Industrial Organizations", def.meaning);
     }
 
+    @Test
+    public void exprAndTerms() {
+        File file = fileWithOneLine("English\tword\tNoun\t# {{#expr:{{some term}}-1}}");
+        Reader reader = new WiktionaryDefinitionsReader(file.getPath());
+        Definition def = reader.getDefinitions("word").get(0);
+        assertEquals("XXXXXXX", def.meaning);
+    }
 
+    @Test
+    public void gnuFdl() {
+        File file = fileWithOneLine("English\tword\tNoun\t# {{initialism of|{{pedlink|GNU Free Documentation License}}}}");
+        Reader reader = new WiktionaryDefinitionsReader(file.getPath());
+        Definition def = reader.getDefinitions("word").get(0);
+        assertEquals("initialism of GNU Free Documentation License", def.meaning);
+    }
+
+    @Test
+    public void daf() {
+        File file = fileWithOneLine("English\tword\tNoun\t# Hebrew {{term|ברך|tr=barúkh|lang=he||blessed}}.");
+        Reader reader = new WiktionaryDefinitionsReader(file.getPath());
+        Definition def = reader.getDefinitions("word").get(0);
+        assertEquals("Hebrew ברך (barúkh, blessed).", def.meaning);
+    }
+
+    @Test
+    public void jumps() {
+        File file = fileWithOneLine("English\tword\tNoun\t# Definition. {{jump|en|the word|u|s|t}}");
+        Reader reader = new WiktionaryDefinitionsReader(file.getPath());
+        Definition def = reader.getDefinitions("word").get(0);
+        assertEquals("Definition.", def.meaning);
+    }
 
     private File fileWithOneLine(String line) {
         try {
