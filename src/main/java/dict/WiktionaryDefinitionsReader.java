@@ -89,7 +89,7 @@ public class WiktionaryDefinitionsReader implements Reader {
     }
 
     private String handleSquareBrackets(String meaning) {
-        meaning = meaning.replaceAll("\\[\\[([^\\|\\]]*)\\|[^\\]]*\\]\\]", "$1");
+        meaning = meaning.replaceAll("\\[\\[([^\\|\\]]*)\\|([^\\]]*)\\]\\]", "$2");
         meaning = meaning.replaceAll("\\[\\[([^\\]]+)\\]\\]", "$1");
         meaning = meaning.replaceAll("\\[\\[signal\\]([^\\]])", "signal$1");
         meaning = meaning.replaceAll(".\\[http://" +
